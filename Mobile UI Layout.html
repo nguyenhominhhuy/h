@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>We have – Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --W: 945px;
+      --H: 2048px;
+      --lavender: #C98AF7;
+      --deep-purple: rgba(155, 75, 222, 0.3);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; background:#111; display:grid; place-items:center; font-family:"Poppins", sans-serif}
+    .fit{position:relative; width:var(--W); height:var(--H); transform-origin:top left}
+    .phone{position:absolute; inset:0; background:var(--lavender); overflow:hidden}
+    .rain{position:absolute; inset:0; pointer-events:none; z-index:0}
+    .drop{position:absolute; top:-60px; user-select:none}
+    .drop.heart{color:#9B4BDE}
+    .drop.cat{filter:saturate(1.1)}
+    @keyframes fallFade{0%{transform:translateY(-80px) translateX(0) rotate(0deg); opacity:1}70%{opacity:0.35}100%{transform:translateY(2300px) translateX(40px) rotate(25deg); opacity:0}}
+    .title{position:absolute; left:57px; top:76px; margin:0; color:#fff; font-weight:600; font-size:69px; letter-spacing:1px; z-index:3}
+    .main-card{position:absolute; left:209px; right:209px; top:231px; height:792px; background:var(--deep-purple); border-radius:120px; color:#fff; display:grid; place-items:center; z-index:3}
+    .main-card .stack{text-align:center; line-height:2.12}
+    .main-card .stack div{font-size:77px; font-weight:600}
+    .label{font-size:32px; font-weight:400; margin-left:10px}
+    .shadow-card, .front-card{position:absolute; z-index:5; overflow:hidden}
+    .shadow-card{left:57px; bottom:170px; width:762px; height:735px; background:var(--deep-purple); border-radius:90px}
+    .front-card{right:44px; bottom:93px; width:705px; height:692px; background:#fff; border-radius:110px}
+    .gallery{position:absolute; inset:0}
+    .gallery .slot{position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity .6s ease; z-index:6}
+    .gallery .slot.active{opacity:1}
+    .toast{position:absolute; left:16px; bottom:16px; background:rgba(0,0,0,.6); color:#fff; padding:10px 14px; border-radius:10px; font-size:14px; z-index:10; max-width:85%}
+    .diag{position:absolute; right:16px; top:16px; background:rgba(0,0,0,.55); color:#fff; padding:8px 10px; border-radius:10px; font-size:12px; z-index:10; max-width:70%}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div class="fit" id="fit">
+    <main class="phone">
+      <div class="rain" id="rain"></div>
+      <h1 class="title">We have</h1>
+      <section class="main-card">
+        <div class="stack">
+          <div><span id="yearVal">0</span><span class="label">years</span></div>
+          <div><span id="monthVal">0</span><span class="label">months</span></div>
+          <div><span id="dayVal">0</span><span class="label">days</span></div>
+        </div>
+      </section>
+      <div class="shadow-card" aria-label="Gallery A">
+        <div class="gallery" id="galleryA">
+          <img class="slot top" alt=""/>
+          <img class="slot bottom" alt=""/>
+        </div>
+      </div>
+      <div class="front-card" aria-label="Gallery B">
+        <div class="gallery" id="galleryB">
+          <img class="slot top" alt=""/>
+          <img class="slot bottom" alt=""/>
+        </div>
+      </div>
+      <div id="toast" class="toast hidden"></div>
+      <div id="diag" class="diag">Loading…</div>
+    </main>
+  </div>
+  <script>
+    function fit(){const el=document.getElementById('fit');const scale=Math.min(window.innerWidth/945, window.innerHeight/2048);el.style.transform=`scale(${scale})`;} window.addEventListener('resize', fit, {passive:true});fit();
+    const START=new Date(2018,7,13);
+    function fullMonthsSince(s,n){let m=(n.getFullYear()-s.getFullYear())*12+(n.getMonth()-s.getMonth());if(n.getDate()<s.getDate())m--;return m;}
+    function fullDaysSince(s,n){const a=new Date(n.getFullYear(),n.getMonth(),n.getDate());const b=new Date(s.getFullYear(),s.getMonth(),s.getDate());return Math.floor((a-b)/86400000);}
+    function updateCounters(){const now=new Date();yearVal.textContent=now.getFullYear()-2018;monthVal.textContent=fullMonthsSince(START,now);dayVal.textContent=fullDaysSince(START,now);} 
+    const yearVal=document.getElementById('yearVal');const monthVal=document.getElementById('monthVal');const dayVal=document.getElementById('dayVal');
+    updateCounters();setInterval(updateCounters,60000);
+    const rain=document.getElementById('rain');
+    function rand(min,max){return Math.random()*(max-min)+min}
+    function spawnDrop(){const isCat=Math.random()<0.35;const span=document.createElement('span');span.className=`drop ${isCat?'cat':'heart'}`;span.textContent=isCat?'😺':'💜';span.style.fontSize=(isCat?rand(28,44):rand(18,32))+'px';span.style.left=rand(0,905)+'px';span.style.animation=`fallFade ${rand(5,10)}s linear 0s 1 both`;rain.appendChild(span);span.addEventListener('animationend',()=>span.remove());}
+    setInterval(()=>{for(let i=0,n=Math.floor(rand(2,5));i<n;i++)spawnDrop()},250);
+    const diag=document.getElementById('diag');
+    const toast=document.getElementById('toast');
+    function showToast(msg){toast.textContent=msg;toast.classList.remove('hidden');setTimeout(()=>toast.classList.add('hidden'),4000)}
+    const IMAGE_IDS = [
+      '1p3sROROry2UQ0xMKDHCJbQOfoUK0VCDe',
+      '1hKPQYe_N44F2k-adrgWS--gBJ7Vrkz65',
+      '1DTk2Rer3O-oeMv3_orO-VVXbiZaAO2KC',
+      '1NEUoWMeVuOoOMEfVLH4PoaN2fawDwsSK',
+      '1kwbmOLS4oAwNAVJc5YAO0RtLBwMXeUgU'
+    ];
+    function idToLink(id){return id.startsWith('http')?id:`https://drive.google.com/uc?export=view&id=${id}`}
+    async function getImageUrls(){const urls=IMAGE_IDS.map(idToLink).filter(Boolean);diag.textContent=`Loaded ${urls.length} images.`;if(!urls.length) showToast('Chưa có ảnh trong IMAGE_IDS.');return urls;}
+    function makeCycler(el, urls, intervalMs=1000){if(!urls||!urls.length) return;const top=el.querySelector('.slot.top');const bottom=el.querySelector('.slot.bottom');let i=0, showTop=true; top.src=urls[0]; top.classList.add('active'); if(urls[1]) bottom.src=urls[1]; i=2%urls.length;setInterval(()=>{const next=urls[i%urls.length]; if(showTop){bottom.src=next; bottom.classList.add('active'); top.classList.remove('active')} else {top.src=next; top.classList.add('active'); bottom.classList.remove('active')} showTop=!showTop; i++}, intervalMs);}
+    async function initGalleries(){const urls=await getImageUrls(); if(!urls.length) return;const a=document.getElementById('galleryA'); const b=document.getElementById('galleryB');makeCycler(a, urls, 1000);const offset=urls.length>1?[...urls.slice(1), urls[0]]:urls; makeCycler(b, offset, 1000);}
+    initGalleries();
+  </script>
+</body>
+</html>
