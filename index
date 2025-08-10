@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>We have – Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --W: 1242px;
+      --H: 2688px;
+      --lavender: #C98AF7;
+      --deep-purple: rgba(155, 75, 222, 0.3);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0; background:#111; display:grid; place-items:center; font-family:"Poppins", sans-serif}
+    .fit{position:relative; width:var(--W); height:var(--H); transform-origin:top left}
+    .phone{position:absolute; inset:0; background:var(--lavender); overflow:hidden}
+    .rain{position:absolute; inset:0; pointer-events:none; z-index:0}
+    .drop{position:absolute; top:-60px; user-select:none}
+    .drop.heart{color:#9B4BDE}
+    .drop.cat{filter:saturate(1.1)}
+    @keyframes fallFade{0%{transform:translateY(-80px) translateX(0) rotate(0deg); opacity:1}70%{opacity:0.35}100%{transform:translateY(3000px) translateX(40px) rotate(25deg); opacity:0}}
+    .title{position:absolute; left:80px; top:100px; margin:0; color:#fff; font-weight:600; font-size:90px; letter-spacing:1px; z-index:3}
+    .main-card{position:absolute; left:200px; right:200px; top:300px; height:1000px; background:var(--deep-purple); border-radius:140px; color:#fff; display:grid; place-items:center; z-index:3}
+    .main-card .stack{text-align:center; line-height:2.12}
+    .main-card .stack div{font-size:100px; font-weight:600}
+    .label{font-size:42px; font-weight:400; margin-left:10px}
+    .img-box{position:absolute; left:150px; right:150px; bottom:150px; aspect-ratio:1/1; border-radius:40px; overflow:hidden; background:#fff; box-shadow:0 20px 50px rgba(0,0,0,.25); z-index:4; display:flex; align-items:center; justify-content:center}
+    .img-stack{position:relative; width:100%; height:100%;}
+    .img-stack img{position:absolute; width:100%; height:100%; object-fit:cover; border-radius:20px; transition:all 0.6s ease;}
+    .img-stack img:nth-child(1){z-index:5; top:0; left:0;}
+    .img-stack img:nth-child(2){z-index:4; top:-15px; left:-15px; opacity:0.8}
+    .img-stack img:nth-child(3){z-index:3; top:-30px; left:-30px; opacity:0.6}
+    .img-stack img:nth-child(4){z-index:2; top:-45px; left:-45px; opacity:0.4}
+    .img-stack img:nth-child(5){z-index:1; top:-60px; left:-60px; opacity:0.2}
+
+    .img-box.secondary{
+      left:50%;
+      top:calc(80% - 150px);
+      right:auto;
+      bottom:auto;
+      transform:translate(-50%, 0) scale(0.9);
+      transform-origin:center;
+      margin-left:-50px;
+    }
+  </style>
+</head>
+<body>
+  <div class="fit" id="fit">
+    <main class="phone">
+      <div class="rain" id="rain"></div>
+      <h1 class="title">We have</h1>
+      <section class="main-card">
+        <div class="stack">
+          <div><span id="yearVal">0</span><span class="label">years</span></div>
+          <div><span id="dayVal">0</span><span class="label">days</span></div>
+          <div><span id="secondVal">0</span><span class="label">seconds</span></div>
+        </div>
+      </section>
+      <div class="img-box">
+        <div class="img-stack" id="imgStack"></div>
+      </div>
+      <div class="img-box secondary">
+        <div class="img-stack" id="imgStackSecondary"></div>
+      </div>
+    </main>
+  </div>
+  <script>
+    function fit(){
+      const el=document.getElementById('fit');
+      const scale=Math.min(window.innerWidth/1242, window.innerHeight/2688);
+      el.style.transform=`scale(${scale})`;
+    }
+    window.addEventListener('resize', fit, {passive:true});
+    fit();
+
+    const START=new Date(2018,7,13);
+    const yearVal=document.getElementById('yearVal');
+    const dayVal=document.getElementById('dayVal');
+    const secondVal=document.getElementById('secondVal');
+    function fullDaysSince(s,n){const a=new Date(n.getFullYear(),n.getMonth(),n.getDate()); const b=new Date(s.getFullYear(),s.getMonth(),s.getDate()); return Math.floor((a-b)/86400000);} 
+    function fullSecondsSince(s,n){return Math.floor((n-s)/1000);} 
+    function fullYearsSince(s,n){ let y=n.getFullYear()-s.getFullYear(); if(n.getMonth()<s.getMonth() || (n.getMonth()==s.getMonth() && n.getDate()<s.getDate())) y--; return y; }
+    function updateCounters(){ const now=new Date(); yearVal.textContent=fullYearsSince(START,now); dayVal.textContent=fullDaysSince(START,now); secondVal.textContent=fullSecondsSince(START,now); }
+    updateCounters(); setInterval(updateCounters,1000);
+
+    const rain=document.getElementById('rain');
+    function rand(min,max){return Math.random()*(max-min)+min}
+    function spawnDrop(){
+      const isCat=Math.random()<0.35;
+      const span=document.createElement('span');
+      span.className=`drop ${isCat?'cat':'heart'}`;
+      span.textContent=isCat?'😺':'💜';
+      span.style.fontSize=(isCat?rand(28,44):rand(18,32))+'px';
+      span.style.left=rand(0,1200)+'px';
+      span.style.animation=`fallFade ${rand(5,10)}s linear 0s 1 both`;
+      rain.appendChild(span);
+      span.addEventListener('animationend',()=>span.remove());
+    }
+    setInterval(()=>{for(let i=0,n=Math.floor(rand(2,5));i<n;i++)spawnDrop()},250);
+
+    const LINKS = [
+      'https://i.postimg.cc/kVHYddxK/Image-Aug-09-2025.png',
+      'https://i.postimg.cc/FfYGpn2R/IMG-Aug-09-2025.jpg',
+      'https://i.postimg.cc/PC32mkV9/IMG-Aug-09-2025-1.jpg',
+      'https://i.postimg.cc/Vry9RsqG/IMG-20250809-214449.jpg',
+      'https://i.postimg.cc/vxbWJPS5/IMG-20250809-214413.jpg'
+    ];
+
+    const stackEl=document.getElementById('imgStack');
+    const stackElSecondary=document.getElementById('imgStackSecondary');
+    LINKS.forEach(src=>{
+      const img=document.createElement('img');
+      img.src=src;
+      img.referrerPolicy="no-referrer";
+      img.crossOrigin="anonymous";
+      stackEl.appendChild(img.cloneNode());
+      stackElSecondary.appendChild(img);
+    });
+
+    setInterval(()=>{
+      const imgs=[...stackEl.children];
+      stackEl.appendChild(imgs.shift());
+
+      const imgsSecondary=[...stackElSecondary.children];
+      stackElSecondary.appendChild(imgsSecondary.shift());
+    },2000);
+  </script>
+</body>
+</html>
