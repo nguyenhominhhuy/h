@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Together – Mobile Scroll Fix (Full Message)</title>
+  <title>Together – No Horizontal Scroll + Fast Scroll Fix</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -11,59 +11,68 @@
     :root{
       --lavender: #C98AF7;
       --deep-purple: rgba(155, 75, 222, 0.3);
+      --fall-distance: 100vh; /* fallback */
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    html,body{height:100%;width:100%}
+    html,body{height:100%;width:100%; overflow-x:hidden;}
     body{
       background:#111;
+      display:block;
       font-family:"Poppins", sans-serif;
       min-height:100vh;
-      overflow:auto;
-      padding:max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      overflow-y:auto;
+      padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+      -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
     }
     .fit{
-      position:relative; width:100%; max-width:1242px;
-      /* Gấp đôi chiều cao, giữ nguyên chiều rộng */
-      aspect-ratio:1242/5376; /* 2688 x 2 */
+      position:relative;
+      width:100%;
+      max-width:1242px;
+      /* Giữ nguyên chiều rộng, tăng chiều cao (bạn đang dùng 8000) */
+      aspect-ratio:1242/8000;
       background:var(--lavender);
-      overflow:auto; /* cuộn bên trong .fit để ổn định trên mobile */
-      border-radius:20px; margin:0 auto;
+      overflow-y:auto; /* chỉ cuộn dọc */
+      overflow-x:hidden; /* không cuộn ngang */
+      border-radius:20px;
+      margin:0 auto;
+      touch-action:pan-y; /* tránh pan-x vô tình */
+      overscroll-behavior:contain;
+      -webkit-overflow-scrolling:touch;
     }
-    /* Nửa trên: giữ nguyên layout cũ với đúng tỉ lệ 1242/2688 */
-    .original{ position:relative; width:100%; aspect-ratio:1242/2688; background:transparent; overflow:hidden; z-index:2 }
 
+    /* Nửa trên (layout gốc) */
+    .original{position:relative; width:100%; aspect-ratio:1242/2688; background:transparent; overflow:hidden; z-index:2}
     .phone{position:absolute; inset:0; background:var(--lavender); overflow:hidden}
 
-    /* RAIN: dùng absolute theo container để tránh glitch khi cuộn mobile */
-    .rain{ position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2 }
-    .drop{ position:absolute; top:-60px; user-select:none; will-change:transform, opacity }
-    .drop.heart{ color:#9B4BDE }
-    .drop.cat{ filter:saturate(1.1) }
-    @keyframes fallFade{ 0%{transform:translateY(-60px) rotate(0deg); opacity:1} 70%{opacity:0.35} 100%{transform:translateY(calc(var(--fall-distance, 100vh) + 60px)) rotate(25deg); opacity:0} }
+    /* RAIN: dùng absolute + width:100% để không gây cuộn ngang (tránh 100vw) */
+    .rain{position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2}
+    .drop{position:absolute; top:-60px; user-select:none; will-change:transform, opacity}
+    .drop.heart{color:#9B4BDE}
+    .drop.cat{filter:saturate(1.1)}
+    @keyframes fallFade{0%{transform:translateY(-60px) rotate(0deg); opacity:1}70%{opacity:0.35}100%{transform:translateY(calc(var(--fall-distance, 100vh) + 60px)) rotate(25deg); opacity:0}}
 
-    .title{ position:absolute; left:6%; top:3%; color:#fff; font-weight:600; font-size:clamp(32px, 7vw, 90px); letter-spacing:1px; z-index:5 }
-    @media (max-width:600px){ .title{ top:2% } }
-    .main-card{ position:absolute; left:10%; right:10%; top:12%; height:35%; background:var(--deep-purple); border-radius:8vw; color:#fff; display:grid; place-items:center; z-index:3; padding:10px }
-    .main-card .stack{ text-align:center; line-height:2.12 }
-    .main-card .stack div{ font-size:clamp(20px, 6vw, 72px); font-weight:600 }
-    .label{ font-size:clamp(12px, 3vw, 42px); font-weight:400; margin-left:1vw }
-    .img-box{ position:absolute; left:12%; right:12%; bottom:6%; aspect-ratio:1/1; border-radius:3vw; overflow:hidden; background:#fff; box-shadow:0 2vw 5vw rgba(0,0,0,.25); z-index:4; display:flex; align-items:center; justify-content:center; transform:scale(0.75) }
-    .img-stack{ position:relative; width:100%; height:100% }
-    .img-stack img{ position:absolute; width:100%; height:100%; object-fit:cover; border-radius:2vw; transition:all .6s ease; image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges }
-    #imgStack img{ opacity:.8 !important }
-    .img-stack img:nth-child(1){ z-index:5; top:0; left:0 }
-    .img-stack img:nth-child(2){ z-index:4; top:-1.2vw; left:-1.2vw }
-    .img-stack img:nth-child(3){ z-index:3; top:-2.4vw; left:-2.4vw }
-    .img-stack img:nth-child(4){ z-index:2; top:-3.6vw; left:-3.6vw }
-    .img-stack img:nth-child(5){ z-index:1; top:-4.8vw; left:-4.8vw }
-    .img-box.secondary{ left:50%; top:70%; transform:translateX(-50%) scale(1.35) }
+    .title{position:absolute; left:6%; top:3%; color:#fff; font-weight:600; font-size:clamp(32px, 7vw, 90px); letter-spacing:1px; z-index:5}
+    @media (max-width:600px){.title{top:2%}}
+    .main-card{position:absolute; left:10%; right:10%; top:12%; height:35%; background:var(--deep-purple); border-radius:8vw; color:#fff; display:grid; place-items:center; z-index:3; padding:10px}
+    .main-card .stack{text-align:center; line-height:2.12}
+    .main-card .stack div{font-size:clamp(20px, 6vw, 72px); font-weight:600}
+    .label{font-size:clamp(12px, 3vw, 42px); font-weight:400; margin-left:1vw}
+    .img-box{position:absolute; left:12%; right:12%; bottom:6%; aspect-ratio:1/1; border-radius:3vw; overflow:hidden; background:#fff; box-shadow:0 2vw 5vw rgba(0,0,0,.25); z-index:4; display:flex; align-items:center; justify-content:center; transform:scale(0.75)}
+    .img-stack{position:relative; width:100%; height:100%}
+    .img-stack img{position:absolute; width:100%; height:100%; object-fit:cover; border-radius:2vw; transition:all .6s ease; image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges}
+    #imgStack img{opacity:.8 !important}
+    .img-stack img:nth-child(1){z-index:5; top:0; left:0}
+    .img-stack img:nth-child(2){z-index:4; top:-1.2vw; left:-1.2vw}
+    .img-stack img:nth-child(3){z-index:3; top:-2.4vw; left:-2.4vw}
+    .img-stack img:nth-child(4){z-index:2; top:-3.6vw; left:-3.6vw}
+    .img-stack img:nth-child(5){z-index:1; top:-4.8vw; left:-4.8vw}
+    .img-box.secondary{left:50%; top:70%; transform:translateX(-50%) scale(1.35)}
 
     /* Nửa dưới: message ở TRÊN mưa */
-    .extra{ position:relative; width:100%; padding:24px 20px 40px; display:flex; align-items:flex-start; justify-content:center; background:linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.12)); z-index:10 }
-    .extra .rain{ z-index:9 }
-    .message-box{ position:relative; z-index:11; width:min(92%, 1000px); background:rgba(201,138,247,.9); color:#fff; border-radius:16px; box-shadow:0 12px 28px rgba(0,0,0,.24); padding:16px 18px }
-    .message-box h3{ font-size:18px; margin-bottom:8px; color:#fff }
-    .message-box p{ font-size:14px; line-height:1.65; color:#fff }
+    .extra{position:relative; width:100%; padding:24px 20px 40px; display:flex; align-items:flex-start; justify-content:center; background:linear-gradient(180deg, rgba(0,0,0,.06), rgba(0,0,0,.12)); z-index:10}
+    .message-box{position:relative; z-index:11; width:min(92%, 1000px); background:rgba(201,138,247,.9); color:#fff; border-radius:16px; box-shadow:0 12px 28px rgba(0,0,0,.24); padding:16px 18px}
+    .message-box h3{font-size:18px; margin-bottom:8px; color:#fff}
+    .message-box p{font-size:14px; line-height:1.65; color:#fff}
   </style>
 </head>
 <body>
@@ -89,9 +98,8 @@
       </main>
     </section>
 
-    <!-- Nửa dưới: lớp mưa riêng + message-box ở TRÊN -->
+    <!-- Nửa dưới: thông điệp (không cần mưa để giữ message nổi phía trước) -->
     <section class="extra" id="extra">
-      <div class="rain" id="rainExtra"></div>
       <div class="message-box">
         <h3>Gửi em 💜</h3>
         <p id="extraText">Cả 1 quá trình, 1 chặng đường, từ cái lúc còn chưa biết mặt nhau, chỉ tình cờ đùa với nhau vài câu, rồi nhắn tin với nhau mà rồi thích nhau, yêu nhau, rồi cãi vã, rồi lại thương, rồi không hiểu nhau, lại cãi nhau, rồi lại hiểu nhau hơn, cùng nhau từ những ngày đầu đặt chân đến trường, cùng nhau tốt nghiệp, cùng đi gần đi xa, trải qua không biết bao nhiêu chuyện lớn nhỏ, mục đích cuối cùng vẫn là để ở bên nhau, nghĩ về tương lai. Vậy mà chỉ vì khoảng thời gian này nguyên nhân chính là không có thời gian bên nhau mà lại xa nhau, không lỗi lầm quá đáng không thể tha thứ, không có nguyên nhân đủ nặng, không người thứ 3, vậy mà lại dễ dàng từ bỏ!
@@ -105,7 +113,7 @@
     </section>
   </div>
 
-  <!-- Kết quả test (ẩn) -->
+  <!-- Self-test (ẩn) -->
   <details style="position:absolute; left:-9999px; top:-9999px;">
     <summary>Self tests</summary>
     <pre id="test-output"></pre>
@@ -115,158 +123,84 @@
   (() => {
     'use strict';
 
-    // Tránh khởi tạo lặp lại nếu canvas tự reload
-    if (window.__WE_HAVE_INIT__) {
-      console.info('[WeHave] already initialized – skip re-init');
-      return;
-    }
+    if (window.__WE_HAVE_INIT__) return; // tránh khởi tạo 2 lần
     window.__WE_HAVE_INIT__ = true;
 
     // --- Time counters ---
-    const START = new Date(2018, 7, 13); // 13/08/2018
+    const START = new Date(2018, 7, 13);
     const yearVal = document.getElementById('yearVal');
     const dayVal = document.getElementById('dayVal');
     const secondVal = document.getElementById('secondVal');
+    const fullDaysSince = (s, n)=>{const sd=new Date(s.getFullYear(),s.getMonth(),s.getDate());const nd=new Date(n.getFullYear(),n.getMonth(),n.getDate());return Math.floor((nd-sd)/86400000)};
+    const fullSecondsSince = (s, n)=> Math.floor((n-s)/1000);
+    const fullYearsSince = (s, n)=>{let y=n.getFullYear()-s.getFullYear(); if(n.getMonth()<s.getMonth()||(n.getMonth()===s.getMonth()&&n.getDate()<s.getDate())) y--; return y};
+    function updateCounters(){ const now=new Date(); yearVal.textContent=fullYearsSince(START,now); dayVal.textContent=fullDaysSince(START,now); secondVal.textContent=fullSecondsSince(START,now); }
+    updateCounters(); const counterTimer=setInterval(updateCounters,1000);
 
-    const fullDaysSince = (s, n) => {
-      const startD = new Date(s.getFullYear(), s.getMonth(), s.getDate());
-      const nowD = new Date(n.getFullYear(), n.getMonth(), n.getDate());
-      return Math.floor((nowD - startD) / 86400000);
-    };
-    const fullSecondsSince = (s, n) => Math.floor((n - s) / 1000);
-    const fullYearsSince = (s, n) => {
-      let y = n.getFullYear() - s.getFullYear();
-      if (n.getMonth() < s.getMonth() || (n.getMonth() === s.getMonth() && n.getDate() < s.getDate())) y--;
-      return y;
-    };
-    function updateCounters(){
-      const now = new Date();
-      yearVal.textContent = fullYearsSince(START, now);
-      dayVal.textContent = fullDaysSince(START, now);
-      secondVal.textContent = fullSecondsSince(START, now);
-    }
-    updateCounters();
-    const counterTimer = setInterval(updateCounters, 1000);
+    // --- Rain effect (mobile-safe + no-hscroll) ---
+    const fit=document.getElementById('fit');
+    const original=document.getElementById('original');
+    const rainTop=document.getElementById('rainTop');
 
-    // --- Rain effect (mobile-safe) ---
-    const fit = document.getElementById('fit');
-    const original = document.getElementById('original');
-    const extra = document.getElementById('extra');
-    const rainTop = document.getElementById('rainTop');
-    const rainExtra = document.getElementById('rainExtra');
-
-    function setFallDistanceFor(el, container){
-      if (!el || !container) return;
-      const h = container.offsetHeight || fit.offsetHeight || window.innerHeight;
-      el.style.setProperty('--fall-distance', h + 'px');
-    }
-    function setAllFallDistances(){
-      setFallDistanceFor(rainTop, original);
-      setFallDistanceFor(rainExtra, extra);
-    }
+    function setFallDistanceFor(el, container){ if(!el||!container) return; const h=container.offsetHeight||fit.offsetHeight||window.innerHeight; el.style.setProperty('--fall-distance', h+'px'); }
+    function setAllFallDistances(){ setFallDistanceFor(rainTop, original); }
     setAllFallDistances();
-    window.addEventListener('resize', setAllFallDistances, { passive:true });
+    window.addEventListener('resize', setAllFallDistances, {passive:true});
 
-    let rafId = null;
-    fit.addEventListener('scroll', () => {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => { setAllFallDistances(); rafId = null; });
-    }, { passive:true });
+    // Tính tốc độ cuộn để giảm spawn khi cuộn rất nhanh (tránh giật)
+    let lastY=fit.scrollTop, lastT=performance.now();
+    let speedFactor=1; // 1 = bình thường; <1 = giảm
+    fit.addEventListener('scroll', ()=>{
+      const now=performance.now();
+      const y=fit.scrollTop; const dy=Math.abs(y-lastY); const dt=Math.max(16, now-lastT); // tránh chia 0
+      const v=dy/dt; // px/ms
+      // nếu v lớn => giảm số drop sinh ra tạm thời
+      speedFactor = v>1.2 ? 0.3 : v>0.6 ? 0.6 : 1;
+      lastY=y; lastT=now;
+      // cập nhật quãng rơi theo rAF để mượt
+      if(!__raf){ __raf=requestAnimationFrame(()=>{ setAllFallDistances(); __raf=null; }); }
+    }, {passive:true});
+    let __raf=null;
 
-    const rand = (min, max) => Math.random() * (max - min) + min;
+    const rand=(min,max)=>Math.random()*(max-min)+min;
+    const MAX_DROPS=160; // giới hạn để không rò rỉ bộ nhớ
+    function trim(layer){ while(layer.childElementCount>MAX_DROPS){ layer.firstElementChild?.remove(); } }
+    function spawnDrop(layer){ if(!layer) return; const isCat=Math.random()<0.35; const span=document.createElement('span'); span.className=`drop ${isCat?'cat':'heart'}`; span.textContent=isCat?'😺':'💜'; span.style.fontSize=(isCat?rand(28,44):rand(18,32))+'px'; span.style.left=rand(0,100)+'%'; span.style.animation=`fallFade ${rand(5,10)}s linear`; span.style.animationFillMode='forwards'; layer.appendChild(span); span.addEventListener('animationend',()=>span.remove(),{once:true}); trim(layer); }
 
-    const MAX_DROPS_PER_LAYER = 160;
-    function trimDrops(layer){
-      if (!layer) return;
-      while (layer.childElementCount > MAX_DROPS_PER_LAYER) layer.removeChild(layer.firstElementChild);
-    }
-
-    function spawnDrop(layer){
-      if (!layer) return;
-      const isCat = Math.random() < 0.35;
-      const span = document.createElement('span');
-      span.className = `drop ${isCat ? 'cat' : 'heart'}`;
-      span.textContent = isCat ? '😺' : '💜';
-      span.style.fontSize = (isCat ? rand(28, 44) : rand(18, 32)) + 'px';
-      span.style.left = rand(0, 100) + '%';
-      span.style.animation = `fallFade ${rand(5, 10)}s linear`;
-      span.style.animationFillMode = 'forwards';
-      layer.appendChild(span);
-      span.addEventListener('animationend', () => span.remove(), { once:true });
-      trimDrops(layer);
-    }
-
-    let rainTimer = null;
-    function startRain(){
-      if (rainTimer) return;
-      rainTimer = setInterval(() => {
-        const nTop = Math.floor(rand(1, 4));
-        const nExtra = Math.floor(rand(1, 4));
-        for (let i=0; i<nTop; i++) spawnDrop(rainTop);
-        for (let i=0; i<nExtra; i++) spawnDrop(rainExtra);
-      }, 300);
-    }
-    function stopRain(){ if (rainTimer) { clearInterval(rainTimer); rainTimer = null; } }
-
-    document.addEventListener('visibilitychange', () => { if (document.hidden) stopRain(); else startRain(); });
+    let rainTimer=null; function startRain(){ if(rainTimer) return; rainTimer=setInterval(()=>{ const n=Math.max(0, Math.floor(rand(1,4)*speedFactor)); for(let i=0;i<n;i++) spawnDrop(rainTop); }, 300); }
+    function stopRain(){ if(rainTimer){ clearInterval(rainTimer); rainTimer=null; } }
+    document.addEventListener('visibilitychange', ()=>{ if(document.hidden) stopRain(); else startRain(); });
     startRain();
 
     // --- Image stacks ---
-    const LINKS = [
+    const LINKS=[
       'https://i.postimg.cc/kVHYddxK/Image-Aug-09-2025.png',
       'https://i.postimg.cc/FfYGpn2R/IMG-Aug-09-2025.jpg',
       'https://i.postimg.cc/PC32mkV9/IMG-Aug-09-2025-1.jpg',
       'https://i.postimg.cc/Vry9RsqG/IMG-20250809-214449.jpg',
       'https://i.postimg.cc/vxbWJPS5/IMG-20250809-214413.jpg'
     ];
-
-    const stackEl = document.getElementById('imgStack');
-    const stackElSecondary = document.getElementById('imgStackSecondary');
-    const rotatedLinks = LINKS.slice(1).concat(LINKS[0]);
-
-    rotatedLinks.forEach(src => {
-      const img = document.createElement('img');
-      img.src = src; img.referrerPolicy = 'no-referrer'; img.crossOrigin = 'anonymous';
-      stackEl.appendChild(img.cloneNode());
-    });
-
-    LINKS.forEach(src => {
-      const img = document.createElement('img');
-      img.src = src; img.referrerPolicy = 'no-referrer'; img.crossOrigin = 'anonymous';
-      stackElSecondary.appendChild(img);
-    });
-
-    const rotateTimer = setInterval(() => {
-      const imgs = [...stackEl.children]; if (imgs.length) stackEl.appendChild(imgs.shift());
-      const imgs2 = [...stackElSecondary.children]; if (imgs2.length) stackElSecondary.appendChild(imgs2.shift());
-    }, 2000);
+    const stackEl=document.getElementById('imgStack');
+    const stackElSecondary=document.getElementById('imgStackSecondary');
+    const rotatedLinks=LINKS.slice(1).concat(LINKS[0]);
+    rotatedLinks.forEach(src=>{ const img=document.createElement('img'); img.src=src; img.referrerPolicy='no-referrer'; img.crossOrigin='anonymous'; stackEl.appendChild(img.cloneNode()); });
+    LINKS.forEach(src=>{ const img=document.createElement('img'); img.src=src; img.referrerPolicy='no-referrer'; img.crossOrigin='anonymous'; stackElSecondary.appendChild(img); });
+    const rotateTimer=setInterval(()=>{ const a=[...stackEl.children]; if(a.length) stackEl.appendChild(a.shift()); const b=[...stackElSecondary.children]; if(b.length) stackElSecondary.appendChild(b.shift()); }, 2000);
 
     // --- Self-tests ---
     (function runSelfTests(){
-      const out = [];
-      const log = (ok, name, got, exp) => {
-        const icon = ok ? '✅' : '❌';
-        const line = `${icon} ${name} | got: ${got} | expected: ${exp}`;
-        (ok ? console.log : console.error)(line); out.push(line);
-      };
-      // A. Hai lớp mưa tồn tại
-      log(!!rainTop, 'rainTop exists', !!rainTop, true);
-      log(!!rainExtra, 'rainExtra exists', !!rainExtra, true);
-      // B. fall-distance > 0
-      const dTop = parseInt(getComputedStyle(rainTop).getPropertyValue('--fall-distance')) || 0;
-      const dExtra = parseInt(getComputedStyle(rainExtra).getPropertyValue('--fall-distance')) || 0;
-      log(dTop > 0, 'fall-distance top > 0', dTop, '>0');
-      log(dExtra > 0, 'fall-distance extra > 0', dExtra, '>0');
-      // C. Spawn thử một icon và auto-remove
-      const before = rainTop.childElementCount;
-      spawnDrop(rainTop);
-      log(rainTop.childElementCount === before + 1, 'spawn one drop', rainTop.childElementCount, before + 1);
-      const pre = document.getElementById('test-output'); if (pre) pre.textContent = out.join('\n');
-      document.documentElement.setAttribute('data-tests', out.some(l => l.startsWith('❌')) ? 'failed' : 'passed');
+      const out=[]; const log=(ok,name,got,exp)=>{ const icon=ok?'✅':'❌'; const line=`${icon} ${name} | got: ${got} | expected: ${exp}`; (ok?console.log:console.error)(line); out.push(line); };
+      // A. Không cuộn ngang (toàn trang)
+      const sw=document.documentElement.scrollWidth, cw=document.documentElement.clientWidth; log(sw<=cw+1, 'No horizontal scroll (page)', `${sw}px`, `<= ${cw+1}px`);
+      // B. Không cuộn ngang trong .fit
+      const fitEl=document.getElementById('fit'); log(fitEl.scrollWidth<=fitEl.clientWidth+1, 'No horizontal scroll (.fit)', `${fitEl.scrollWidth}px`, `<= ${fitEl.clientWidth+1}px`);
+      // C. fall-distance đã set > 0
+      const d=parseInt(getComputedStyle(rainTop).getPropertyValue('--fall-distance'))||0; log(d>0, 'fall-distance top > 0', d, '>0');
+      const pre=document.getElementById('test-output'); if(pre) pre.textContent=out.join('\n');
+      document.documentElement.setAttribute('data-tests', out.some(l=>l.startsWith('❌')) ? 'failed':'passed');
     })();
 
-    // Teardown (nếu cần)
-    window.__WE_HAVE_APP__ = { teardown(){ clearInterval(counterTimer); stopRain(); clearInterval(rotateTimer); window.removeEventListener('resize', setAllFallDistances); fit.removeEventListener('scroll', setAllFallDistances); } };
+    window.__WE_HAVE_APP__={ teardown(){ clearInterval(counterTimer); stopRain(); clearInterval(rotateTimer); window.removeEventListener('resize', setAllFallDistances); fit.removeEventListener('scroll', setAllFallDistances); } };
   })();
   </script>
 </body>
