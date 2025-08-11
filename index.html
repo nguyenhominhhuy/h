@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Together – Double Height + Message (Above Rain, white text)</title>
+  <title>Together – Double Height + Message (Above Rain)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -28,7 +28,7 @@
       width:100%;
       max-width:1242px;
       /* Gấp đôi chiều cao, giữ nguyên chiều rộng */
-      aspect-ratio:1242/5376; /* 2688 x 2 */
+      aspect-ratio:1242/8000; /* 2688 x 2 */
       background:var(--lavender);
       overflow:auto; /* cho phép cuộn để xem phần tin nhắn mới */
       border-radius:20px;
@@ -95,14 +95,13 @@
       position:relative;
       z-index:11; /* chồng cao nhất để an toàn */
       width:min(92%, 1000px);
-      /* nền tím nhạt 50% để đảm bảo tương phản với chữ trắng */
-      background: rgba(201, 138, 247, 0.5);
+      /* Nền tím nhạt – độ trong suốt 90% */
+      background: rgba(201, 138, 247, 0.9);
       color:#fff; /* chữ trắng */
       border-radius:16px;
       box-shadow:0 12px 28px rgba(0,0,0,.24);
       padding:16px 18px;
     }
-    /* đảm bảo tất cả chữ bên trong đều trắng */
     .message-box h3{font-size:clamp(16px, 4vw, 24px); margin-bottom:8px; color:#fff}
     .message-box p{font-size:clamp(14px, 3.6vw, 18px); line-height:1.65; color:#fff}
   </style>
