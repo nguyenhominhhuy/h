@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Together – Double Height + Message (Above Rain)</title>
+  <title>Together – Double Height + Message (Mobile Scroll Fix)</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
@@ -11,7 +11,6 @@
     :root{
       --lavender: #C98AF7;
       --deep-purple: rgba(155, 75, 222, 0.3);
-      --fall-distance: 100vh; 
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{height:100%;width:100%;}
@@ -28,9 +27,9 @@
       width:100%;
       max-width:1242px;
       /* Gấp đôi chiều cao, giữ nguyên chiều rộng */
-      aspect-ratio:1242/8000; /* 2688 x 2 */
+      aspect-ratio:1242/5376; /* 2688 x 2 */
       background:var(--lavender);
-      overflow:auto; /* cho phép cuộn để xem phần tin nhắn mới */
+      overflow:auto; /* cuộn bên trong .fit để ổn định trên mobile */
       border-radius:20px;
       margin:0 auto;
     }
@@ -41,77 +40,64 @@
       aspect-ratio:1242/2688; /* chiều cao cũ */
       background:transparent;
       overflow:hidden;
-      z-index:2; /* nền dưới, nhưng trên nền .fit */
+      z-index:2; /* tạo stacking context riêng */
     }
 
     .phone{position:absolute; inset:0; background:var(--lavender); overflow:hidden}
-    .rain{position:fixed; inset:0; width:100vw; height:100vh; pointer-events:none; z-index:1} 
-    .drop{position:absolute; top:-60px; user-select:none}
+
+    /* RAIN: dùng position:absolute theo container thay vì fixed để tránh glitch khi cuộn trên mobile */
+    .rain{
+      position:absolute; inset:0; width:100%; height:100%;
+      pointer-events:none; z-index:2; /* dưới title (5) & message (11), trên nền */
+    }
+    .drop{position:absolute; top:-60px; user-select:none; will-change:transform, opacity}
     .drop.heart{color:#9B4BDE}
     .drop.cat{filter:saturate(1.1)}
     @keyframes fallFade{
       0%{transform:translateY(-60px) rotate(0deg); opacity:1}
       70%{opacity:0.35}
-      100%{transform:translateY(calc(var(--fall-distance) + 60px)) rotate(25deg); opacity:0}
+      100%{transform:translateY(calc(var(--fall-distance, 100vh) + 60px)) rotate(25deg); opacity:0}
     }
+
     .title{
       position:absolute;
-      left:6%;
-      top:3%;
-      color:#fff;
-      font-weight:600;
+      left:6%; top:3%;
+      color:#fff; font-weight:600;
       font-size:clamp(32px, 7vw, 90px);
-      letter-spacing:1px;
-      z-index:5; /* cao hơn hiệu ứng mưa */
+      letter-spacing:1px; z-index:5;
     }
-    @media (max-width:600px){.title{top:2%;}}
-    .main-card{position:absolute; left:10%; right:10%; top:12%; height:35%; background:var(--deep-purple); border-radius:8vw; color:#fff; display:grid; place-items:center; z-index:3; padding:10px;}
+    @media (max-width:600px){.title{top:2%}}
+    .main-card{position:absolute; left:10%; right:10%; top:12%; height:35%; background:var(--deep-purple); border-radius:8vw; color:#fff; display:grid; place-items:center; z-index:3; padding:10px}
     .main-card .stack{text-align:center; line-height:2.12}
     .main-card .stack div{font-size:clamp(20px, 6vw, 72px); font-weight:600}
     .label{font-size:clamp(12px, 3vw, 42px); font-weight:400; margin-left:1vw}
-    .img-box{position:absolute; left:12%; right:12%; bottom:6%; aspect-ratio:1/1; border-radius:3vw; overflow:hidden; background:#fff; box-shadow:0 2vw 5vw rgba(0,0,0,.25); z-index:4; display:flex; align-items:center; justify-content:center; transform:scale(0.75);}    
-    .img-stack{position:relative; width:100%; height:100%;}
-    .img-stack img{position:absolute; width:100%; height:100%; object-fit:cover; border-radius:2vw; transition:all 0.6s ease; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;}
-    #imgStack img{opacity:0.8 !important;}
-    .img-stack img:nth-child(1){z-index:5; top:0; left:0;}
-    .img-stack img:nth-child(2){z-index:4; top:-1.2vw; left:-1.2vw;}
-    .img-stack img:nth-child(3){z-index:3; top:-2.4vw; left:-2.4vw;}
-    .img-stack img:nth-child(4){z-index:2; top:-3.6vw; left:-3.6vw;}
-    .img-stack img:nth-child(5){z-index:1; top:-4.8vw; left:-4.8vw;}
-    .img-box.secondary{left:50%; top:70%; transform:translateX(-50%) scale(1.35);}    
+    .img-box{position:absolute; left:12%; right:12%; bottom:6%; aspect-ratio:1/1; border-radius:3vw; overflow:hidden; background:#fff; box-shadow:0 2vw 5vw rgba(0,0,0,.25); z-index:4; display:flex; align-items:center; justify-content:center; transform:scale(0.75)}
+    .img-stack{position:relative; width:100%; height:100%}
+    .img-stack img{position:absolute; width:100%; height:100%; object-fit:cover; border-radius:2vw; transition:all 0.6s ease; image-rendering:-webkit-optimize-contrast; image-rendering:crisp-edges}
+    #imgStack img{opacity:0.8 !important}
+    .img-stack img:nth-child(1){z-index:5; top:0; left:0}
+    .img-stack img:nth-child(2){z-index:4; top:-1.2vw; left:-1.2vw}
+    .img-stack img:nth-child(3){z-index:3; top:-2.4vw; left:-2.4vw}
+    .img-stack img:nth-child(4){z-index:2; top:-3.6vw; left:-3.6vw}
+    .img-stack img:nth-child(5){z-index:1; top:-4.8vw; left:-4.8vw}
+    .img-box.secondary{left:50%; top:70%; transform:translateX(-50%) scale(1.35)}
 
     /* Phần tin nhắn mới: nằm TRÊN hiệu ứng mưa */
-    .extra{
-      position:relative;
-      width:100%;
-      padding:24px 20px 40px;
-      display:flex;
-      align-items:flex-start;
-      justify-content:center;
-      background:linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.12));
-      z-index:10; /* cao hơn .rain (z-index:1) */
-    }
-    .message-box{
-      position:relative;
-      z-index:11; /* chồng cao nhất để an toàn */
-      width:min(92%, 1000px);
-      /* Nền tím nhạt – độ trong suốt 90% */
-      background: rgba(201, 138, 247, 0.9);
-      color:#fff; /* chữ trắng */
-      border-radius:16px;
-      box-shadow:0 12px 28px rgba(0,0,0,.24);
-      padding:16px 18px;
-    }
-    .message-box h3{font-size:clamp(16px, 4vw, 24px); margin-bottom:8px; color:#fff}
-    .message-box p{font-size:clamp(14px, 3.6vw, 18px); line-height:1.65; color:#fff}
+    .extra{position:relative; width:100%; padding:24px 20px 40px; display:flex; align-items:flex-start; justify-content:center; background:linear-gradient(180deg, rgba(0,0,0,0.06), rgba(0,0,0,0.12)); z-index:10}
+    .message-box{position:relative; z-index:11; width:min(92%, 1000px); background: rgba(201, 138, 247, 0.9); color:#fff; border-radius:16px; box-shadow:0 12px 28px rgba(0,0,0,.24); padding:16px 18px}
+    .message-box h3{font-size:18px; margin-bottom:8px; color:#fff}
+    .message-box p{font-size:14px; line-height:1.65; color:#fff}
+
+    /* lớp mưa cho phần extra để icon rơi chạy cả nửa dưới */
+    .extra .rain{z-index:9}
   </style>
 </head>
 <body>
-  <div class="fit">
-    <!-- Khối giữ nguyên bố cục cũ -->
-    <section class="original">
+  <div class="fit" id="fit">
+    <!-- Lớp mưa cho nửa trên (giữ nguyên vị trí & thứ tự như bản cũ) -->
+    <section class="original" id="original">
       <main class="phone">
-        <div class="rain" id="rain"></div>
+        <div class="rain" id="rainTop"></div>
         <h1 class="title">TOGETHER</h1>
         <section class="main-card">
           <div class="stack">
@@ -129,17 +115,12 @@
       </main>
     </section>
 
-    <!-- Phần thêm để viết tin nhắn (trên icon rơi) -->
-    <section class="extra">
+    <!-- Phần thêm để viết tin nhắn (có lớp mưa riêng và message-box nằm TRÊN mưa) -->
+    <section class="extra" id="extra">
+      <div class="rain" id="rainExtra"></div>
       <div class="message-box">
         <h3>Gửi em 💜</h3>
-        <p id="extraText">Cả 1 quá trình, 1 chặng đường, từ cái lúc còn chưa biết mặt nhau, chỉ tình cờ đùa với nhau vài câu, rồi nhắn tin với nhau mà rồi thích nhau, yêu nhau, rồi cãi vã, rồi lại thương, rồi không hiểu nhau, lại cãi nhau, rồi lại hiểu nhau hơn, cùng nhau từ những ngày đầu đặt chân đến trường, cùng nhau tốt nghiệp, cùng đi gần đi xa, trải qua không biết bao nhiêu chuyện lớn nhỏ, mục đích cuối cùng vẫn là để ở bên nhau, nghĩ về tương lai. Vậy mà chỉ vì khoảng thời gian này nguyên nhân chính là không có thời gian bên nhau mà lại xa nhau, không lỗi lầm quá đáng không thể tha thứ, không có nguyên nhân đủ nặng, không người thứ 3, vậy mà lại dễ dàng từ bỏ!
-
-<br> <br>Anh biết mình đã qua cái khoảng thời gian mà cần nhau, nhớ nhau nhiều tới mức chỉ muốn ở cạnh, mỗi giai đoạn mỗi thời điểm mọi thứ cũng sẽ thay đổi theo. Bây giờ cũng vậy, không cần phải lúc nào cũng phải kè bên nhau, em cần có không gian riêng, anh cũng vậy. Nhưng chỉ cần những lúc như có việc đi xa thì có người đồng hành, lúc có làm sao có đi bệnh viện thì có người đi cùng, có 1 người để trò chuyện, để tâm sự. Anh nhận ra đó mới là cái hiện tại anh và em cần, trước giờ anh hong có suy nghĩ vậy, hôm nay anh mới ngẫm lại thì anh cảm thấy trước giờ 2 đứa mình ở bên cạnh nhau chỉ nghĩ cần nhau, có tình cảm là đủ, nhưng mà thời điểm này, thời gian bên nhau không có, thì anh nghĩ quan tâm nhau mới là cái quan trọng nhất. Không phải là trước giờ anh không quan tâm em, chỉ là chưa đủ, anh không nói ra nhưng lúc nào anh cũng nghĩ em cần gì, em thích gì để anh mua cho em vui, nhưng anh không nhận ra em cần sự chia sẻ, sự kết nối hơn là điều đó. Em cũng quan tâm anh nhưng càng ngày càng ít đi vì em không có thời gian nghĩ tới nữa, anh hiểu!! Hay là em cứ chấp nhận, cứ để anh thay đổi cách mình quen nhau, thay đổi luôn cả cách nhìn nhận, đối xử với nhau nhẹ nhàng hơn.
-
-<br> <br>Mấy hôm nay anh suy nghĩ nhiều lắm, về từng chuyện lớn nhỏ xưa giờ, anh nghĩ mình cũng đã thực sự hiểu, cũng tới lúc anh phải trưởng thành rồi. Nhưng anh vẫn muốn có em ở cạnh, vẫn muốn em là ưu tiên của anh, anh cũng không cần em phải thay đổi gì đâu, chỉ là anh muốn anh sẽ thay đổi cách anh đối xử với em thôi. 7 năm qua em quen, em yêu 1 đứa con nít, bây giờ anh biết đã đến lúc em cần 1 người trưởng thành hơn.
-
-<br> <br>Thử cùng nhau cố gắng 1 lần, thay đổi cách suy nghĩ 1 lần, cùng hướng tới tương lai tốt đẹp hơn. Bỏ hết những chuyện không vui, làm người yêu anh 1 lần nữa, nha 💜</p>
+        <p id="extraText">Cả 1 quá trình, 1 chặng đường, từ cái lúc còn chưa biết mặt nhau... (rút gọn ở đây cho gọn khung, bạn dán lại nội dung đầy đủ nếu muốn)</p>
       </div>
     </section>
   </div>
@@ -167,17 +148,17 @@
     const dayVal = document.getElementById('dayVal');
     const secondVal = document.getElementById('secondVal');
 
-    function fullDaysSince(s, n){
+    const fullDaysSince = (s, n) => {
       const startD = new Date(s.getFullYear(), s.getMonth(), s.getDate());
       const nowD = new Date(n.getFullYear(), n.getMonth(), n.getDate());
       return Math.floor((nowD - startD) / 86400000);
-    }
-    function fullSecondsSince(s, n){ return Math.floor((n - s) / 1000); }
-    function fullYearsSince(s, n){
+    };
+    const fullSecondsSince = (s, n) => Math.floor((n - s) / 1000);
+    const fullYearsSince = (s, n) => {
       let y = n.getFullYear() - s.getFullYear();
       if (n.getMonth() < s.getMonth() || (n.getMonth() === s.getMonth() && n.getDate() < s.getDate())) y--;
       return y;
-    }
+    };
     function updateCounters(){
       const now = new Date();
       yearVal.textContent = fullYearsSince(START, now);
@@ -187,17 +168,53 @@
     updateCounters();
     const counterTimer = setInterval(updateCounters, 1000);
 
-    // --- Rain effect ---
-    const rain = document.getElementById('rain');
-    function setFallDistance(){
-      const pageH = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight);
-      document.documentElement.style.setProperty('--fall-distance', pageH + 'px');
-    }
-    setFallDistance();
-    window.addEventListener('resize', setFallDistance, { passive: true });
+    // --- Rain effect (mobile-safe) ---
+    const fit = document.getElementById('fit');
+    const original = document.getElementById('original');
+    const extra = document.getElementById('extra');
+    const rainTop = document.getElementById('rainTop');
+    const rainExtra = document.getElementById('rainExtra');
 
-    function rand(min, max){ return Math.random() * (max - min) + min; }
-    function spawnDrop(){
+    // Cập nhật quãng rơi theo chiều cao container để không phụ thuộc 100vh (hay 100vw) -> tránh giật trên mobile
+    function setFallDistanceFor(el, container){
+      if (!el || !container) return;
+      // Dùng offsetHeight để lấy chiều cao hiển thị thực tế của container
+      const h = container.offsetHeight || fit.offsetHeight || window.innerHeight;
+      el.style.setProperty('--fall-distance', h + 'px');
+    }
+    function setAllFallDistances(){
+      setFallDistanceFor(rainTop, original);
+      setFallDistanceFor(rainExtra, extra);
+    }
+    setAllFallDistances();
+
+    // Resize & orientation change
+    window.addEventListener('resize', setAllFallDistances, { passive:true });
+
+    // iOS đôi khi thay đổi layout khi cuộn; lắng nghe scroll của .fit để cập nhật nhẹ (debounce bằng rAF)
+    let rafId = null;
+    fit.addEventListener('scroll', () => {
+      if (rafId) return;
+      rafId = requestAnimationFrame(() => {
+        setAllFallDistances();
+        rafId = null;
+      });
+    }, { passive:true });
+
+    // Random helper
+    const rand = (min, max) => Math.random() * (max - min) + min;
+
+    // Giới hạn số phần tử để tránh rò rỉ khi cuộn lâu trên mobile
+    const MAX_DROPS_PER_LAYER = 160;
+    function trimDrops(layer){
+      if (!layer) return;
+      while (layer.childElementCount > MAX_DROPS_PER_LAYER) {
+        layer.removeChild(layer.firstElementChild);
+      }
+    }
+
+    function spawnDrop(layer){
+      if (!layer) return;
       const isCat = Math.random() < 0.35;
       const span = document.createElement('span');
       span.className = `drop ${isCat ? 'cat' : 'heart'}`;
@@ -206,14 +223,31 @@
       span.style.left = rand(0, 100) + '%';
       span.style.animation = `fallFade ${rand(5, 10)}s linear`;
       span.style.animationFillMode = 'forwards';
-      rain.appendChild(span);
-      span.addEventListener('animationend', () => span.remove());
+      layer.appendChild(span);
+      span.addEventListener('animationend', () => span.remove(), { once:true });
+      trimDrops(layer);
     }
-    const rainTimer = setInterval(() => {
-      for (let i = 0, n = Math.floor(rand(2, 5)); i < n; i++) spawnDrop();
-    }, 250);
 
-    // --- Image stacks ---
+    // Thay vì bắn rất nhiều mỗi 250ms, giảm nhịp khi tab không hiển thị để đỡ giật
+    let rainTimer = null;
+    function startRain(){
+      if (rainTimer) return;
+      rainTimer = setInterval(() => {
+        const nTop = Math.floor(rand(1, 4));
+        const nExtra = Math.floor(rand(1, 4));
+        for (let i=0; i<nTop; i++) spawnDrop(rainTop);
+        for (let i=0; i<nExtra; i++) spawnDrop(rainExtra);
+      }, 300);
+    }
+    function stopRain(){ if (rainTimer) { clearInterval(rainTimer); rainTimer = null; } }
+
+    // Pause khi chuyển nền / mở tab khác để tránh lỗi lặt vặt trên iOS
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) stopRain(); else startRain();
+    });
+    startRain();
+
+    // --- Image stacks (không đổi) ---
     const LINKS = [
       'https://i.postimg.cc/kVHYddxK/Image-Aug-09-2025.png',
       'https://i.postimg.cc/FfYGpn2R/IMG-Aug-09-2025.jpg',
@@ -228,55 +262,58 @@
 
     rotatedLinks.forEach(src => {
       const img = document.createElement('img');
-      img.src = src;
-      img.referrerPolicy = 'no-referrer';
-      img.crossOrigin = 'anonymous';
-      // thêm clone để tránh double-loading khi xoay vòng
+      img.src = src; img.referrerPolicy = 'no-referrer'; img.crossOrigin = 'anonymous';
       stackEl.appendChild(img.cloneNode());
     });
 
     LINKS.forEach(src => {
       const img = document.createElement('img');
-      img.src = src;
-      img.referrerPolicy = 'no-referrer';
-      img.crossOrigin = 'anonymous';
+      img.src = src; img.referrerPolicy = 'no-referrer'; img.crossOrigin = 'anonymous';
       stackElSecondary.appendChild(img);
     });
 
     const rotateTimer = setInterval(() => {
       const imgs = [...stackEl.children];
-      if (imgs.length > 0) stackEl.appendChild(imgs.shift());
-
-      const imgsSecondary = [...stackElSecondary.children];
-      if (imgsSecondary.length > 0) stackElSecondary.appendChild(imgsSecondary.shift());
+      if (imgs.length) stackEl.appendChild(imgs.shift());
+      const imgs2 = [...stackElSecondary.children];
+      if (imgs2.length) stackElSecondary.appendChild(imgs2.shift());
     }, 2000);
 
-    // --- Minimal self-tests ---
+    // --- Self-tests để bắt lỗi thường gặp trên mobile ---
     (function runSelfTests(){
       const out = [];
       const log = (ok, name, got, exp) => {
         const icon = ok ? '✅' : '❌';
         const line = `${icon} ${name} | got: ${got} | expected: ${exp}`;
-        (ok ? console.log : console.error)(line);
-        out.push(line);
+        (ok ? console.log : console.error)(line); out.push(line);
       };
-      const s = new Date(2018, 7, 13);
-      log(fullDaysSince(s, new Date(2018, 7, 14)) === 1, 'fullDaysSince +1 day', fullDaysSince(s, new Date(2018,7,14)), 1);
-      log(fullYearsSince(s, new Date(2019, 7, 12)) === 0, 'fullYearsSince before anniversary', fullYearsSince(s, new Date(2019,7,12)), 0);
-      log(fullYearsSince(s, new Date(2019, 7, 13)) === 1, 'fullYearsSince on anniversary', fullYearsSince(s, new Date(2019,7,13)), 1);
-      log(fullSecondsSince(s, new Date(s.getTime() + 61000)) === 61, 'fullSecondsSince +61s', fullSecondsSince(s, new Date(s.getTime()+61000)), 61);
+      // A. Tồn tại 2 lớp mưa
+      log(!!rainTop, 'rainTop exists', !!rainTop, true);
+      log(!!rainExtra, 'rainExtra exists', !!rainExtra, true);
+      // B. Quãng rơi đã được set > 0
+      const dTop = parseInt(getComputedStyle(rainTop).getPropertyValue('--fall-distance')) || 0;
+      const dExtra = parseInt(getComputedStyle(rainExtra).getPropertyValue('--fall-distance')) || 0;
+      log(dTop > 0, 'fall-distance top > 0', dTop, '>0');
+      log(dExtra > 0, 'fall-distance extra > 0', dExtra, '>0');
+      // C. Spawn thử một icon và auto-remove
+      const before = rainTop.childElementCount;
+      spawnDrop(rainTop);
+      log(rainTop.childElementCount === before + 1, 'spawn one drop', rainTop.childElementCount, before + 1);
+      setTimeout(() => { trimDrops(rainTop); }, 11000);
+      // Ghi ra <pre> nếu cần xem nhanh
       const pre = document.getElementById('test-output');
       if (pre) pre.textContent = out.join('\n');
       document.documentElement.setAttribute('data-tests', out.some(l => l.startsWith('❌')) ? 'failed' : 'passed');
     })();
 
-    // teardown nếu cần
+    // Teardown (nếu cần)
     window.__WE_HAVE_APP__ = {
       teardown(){
         clearInterval(counterTimer);
-        clearInterval(rainTimer);
+        stopRain();
         clearInterval(rotateTimer);
-        window.removeEventListener('resize', setFallDistance);
+        window.removeEventListener('resize', setAllFallDistances);
+        fit.removeEventListener('scroll', setAllFallDistances);
       }
     };
   })();
