@@ -312,5 +312,135 @@
     };
   })();
   </script>
+
+  <!-- ========================= -->
+  <!-- PASSCODE OVERLAY (1308)  -->
+  <!-- ========================= -->
+  <script>
+  (function(){
+    'use strict';
+    if (window.__PIN_OVERLAY_INIT__) return; // tránh khởi tạo 2 lần khi Canvas reload
+    window.__PIN_OVERLAY_INIT__ = true;
+
+    // Cấu hình — để tránh bị hỏi lại khi Canvas auto-reload, mặc định chỉ hỏi MỖI PHIÊN.
+    // Đổi ALWAYS_ASK thành true nếu bạn muốn lúc nào mở trang cũng phải nhập mã.
+    const ALWAYS_ASK = false;
+    const PASS_KEY = 'pass_ok_1308';
+    const CORRECT = '1308';
+
+    try {
+      if (!ALWAYS_ASK && sessionStorage.getItem(PASS_KEY) === '1') return; // đã mở khóa trong phiên
+    } catch (e) { /* sessionStorage có thể không khả dụng ở chế độ riêng tư */ }
+
+    const css = `
+    .pc-overlay{position:fixed; inset:0; z-index:2147483647; display:flex; align-items:center; justify-content:center; background:rgba(0,0,0,.45); backdrop-filter:saturate(1.2) blur(12px)}
+    .pc-wrap{width:min(380px,92vw); color:#fff; text-align:center; user-select:none}
+    .pc-title{font-weight:600; font-size:20px; opacity:.95; margin-bottom:14px}
+    .pc-dots{display:flex; justify-content:center; gap:14px; margin:6px 0 16px}
+    .pc-dot{width:14px; height:14px; border-radius:50%; border:2px solid rgba(255,255,255,.6); background:transparent}
+    .pc-dot.filled{background:#fff; border-color:#fff}
+    .pc-msg{min-height:18px; font-size:13px; color:#ffb4b4; margin-bottom:8px; opacity:0; transition:opacity .2s ease}
+    .pc-msg.show{opacity:1}
+    .pc-keypad{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:10px}
+    .pc-key{aspect-ratio:1/1; border-radius:999px; display:flex; align-items:center; justify-content:center; font-size:24px; line-height:1; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.12); cursor:pointer; -webkit-tap-highlight-color:transparent}
+    .pc-key:active{background:rgba(255,255,255,.16)}
+    .pc-sub{display:block; font-size:10px; opacity:.65; margin-top:2px}
+    .pc-empty{pointer-events:none; opacity:0}
+    .pc-ops{display:flex; justify-content:space-between; margin-top:14px}
+    .pc-op{font-size:14px; opacity:.9; cursor:pointer; padding:6px 10px; border-radius:10px; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.1)}
+    .pc-op:active{background:rgba(255,255,255,.12)}
+    @keyframes pc-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px)}40%{transform:translateX(8px)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+    .pc-wrap.error{animation:pc-shake .36s ease}
+    .pc-fade{animation:pc-fade .24s ease forwards}
+    @keyframes pc-fade{to{opacity:0; visibility:hidden}}
+    `;
+
+    const style = document.createElement('style');
+    style.textContent = css; document.head.appendChild(style);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'pc-overlay';
+    overlay.setAttribute('role','dialog');
+    overlay.setAttribute('aria-modal','true');
+    overlay.setAttribute('aria-label','Nhập mật mã để vào trang');
+
+    overlay.innerHTML = `
+      <div class="pc-wrap" id="pcWrap">
+        <div class="pc-title">Nhập mật mã</div>
+        <div class="pc-dots" aria-label="Trạng thái nhập">
+          <span class="pc-dot" id="d1"></span>
+          <span class="pc-dot" id="d2"></span>
+          <span class="pc-dot" id="d3"></span>
+          <span class="pc-dot" id="d4"></span>
+        </div>
+        <div class="pc-msg" id="pcMsg">Mật mã không đúng</div>
+        <div class="pc-keypad" id="pcPad">
+          ${[1,2,3,4,5,6,7,8,9].map(n => `<button class="pc-key" data-key="${n}" aria-label="${n}">${n}</button>`).join('')}
+          <div class="pc-key pc-empty" aria-hidden="true"></div>
+          <button class="pc-key" data-key="0" aria-label="0">0</button>
+          <button class="pc-key" data-action="del" aria-label="Xoá">⌫</button>
+        </div>
+        <div class="pc-ops">
+          <button class="pc-op" data-action="clear" aria-label="Xoá hết">Xoá hết</button>
+          <button class="pc-op" data-action="close" aria-label="Ẩn bàn phím">Ẩn</button>
+        </div>
+      </div>`;
+
+    // Gắn vào DOM & khoá cuộn nền
+    document.body.appendChild(overlay);
+    const prevOverflow = document.documentElement.style.overflow;
+    document.documentElement.style.overflow = 'hidden';
+
+    const wrap = overlay.querySelector('#pcWrap');
+    const msg = overlay.querySelector('#pcMsg');
+    const dots = [overlay.querySelector('#d1'), overlay.querySelector('#d2'), overlay.querySelector('#d3'), overlay.querySelector('#d4')];
+
+    let input = '';
+    const setDots = () => dots.forEach((d,i)=> d.classList.toggle('filled', i < input.length));
+    const showError = () => { msg.classList.add('show'); wrap.classList.remove('error'); void wrap.offsetWidth; wrap.classList.add('error'); try{ navigator.vibrate && navigator.vibrate(160);}catch(_){} };
+    const hideError = () => msg.classList.remove('show');
+
+    function unlock(){
+      try { sessionStorage.setItem(PASS_KEY, '1'); } catch (e) {}
+      overlay.classList.add('pc-fade');
+      setTimeout(()=>{ overlay.remove(); document.documentElement.style.overflow = prevOverflow || ''; }, 240);
+    }
+
+    function pressDigit(d){
+      if (input.length >= 4) return;
+      input += d;
+      hideError();
+      setDots();
+      if (input.length === 4){
+        setTimeout(() => {
+          if (input === CORRECT) unlock();
+          else { input = ''; setDots(); showError(); }
+        }, 90);
+      }
+    }
+
+    function backspace(){ if (!input) return; input = input.slice(0,-1); hideError(); setDots(); }
+    function clearAll(){ input = ''; hideError(); setDots(); }
+
+    overlay.addEventListener('click', (e) => {
+      const t = e.target;
+      if (t.matches('[data-key]')) { pressDigit(t.getAttribute('data-key')); }
+      else if (t.matches('[data-action="del"]')) backspace();
+      else if (t.matches('[data-action="clear"]')) clearAll();
+      else if (t.matches('[data-action="close"]')) { /* ẩn bàn phím nhưng KHÔNG cho vào trang */ overlay.blur(); }
+    });
+
+    // Hỗ trợ bàn phím vật lý
+    document.addEventListener('keydown', (e) => {
+      if (!document.body.contains(overlay)) return;
+      if (/^\d$/.test(e.key)) pressDigit(e.key);
+      else if (e.key === 'Backspace') backspace();
+      else if (e.key === 'Escape') clearAll();
+    });
+
+    // Focus trap thô sơ
+    overlay.tabIndex = -1; overlay.focus();
+  })();
+  </script>
 </body>
 </html>
